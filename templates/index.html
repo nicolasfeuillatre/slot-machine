@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Hour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #120d18;
+      --bg-2:      #1b1322;
+      --cabinet-1: #261c33;
+      --cabinet-2: #1a1325;
+      --edge:      #3c2d50;
+      --recess:    #0c0810;
+
+      --gold:      #f5c869;
+      --gold-soft: #e8b04b;
+      --gold-deep: #c9952f;
+
+      --ink:       #f4eee3;
+      --ink-dim:   rgba(244, 238, 227, 0.52);
+      --ink-faint: rgba(244, 238, 227, 0.12);
+
+      --jade:      #5bd6a8;
+      --rose:      #ec7a7c;
+
+      --display: 'Fraunces', Georgia, serif;
+      --ui: 'Space Grotesk', system-ui, sans-serif;
+
+      --tile-A: #f5c869;
+      --tile-B: #f0a04b;
+      --tile-C: #c2cf5a;
+      --tile-D: #ec7a7c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--ui);
+      color: var(--ink);
+      background:
+        radial-gradient(120% 90% at 50% -10%, #241733 0%, transparent 55%),
+        radial-gradient(90% 70% at 50% 120%, #1d1430 0%, transparent 60%),
+        var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ----- Cabinet ----- */
+    .cabinet {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 26px;
+      padding: 1.5px;
+      background: linear-gradient(160deg, var(--edge), transparent 35%, transparent 65%, var(--gold-deep));
+      box-shadow:
+        0 40px 90px -30px rgba(0, 0, 0, 0.85),
+        0 0 0 1px rgba(0, 0, 0, 0.4);
+    }
+    .cabinet-inner {
+      border-radius: 25px;
+      background: linear-gradient(165deg, var(--cabinet-1), var(--cabinet-2));
+      padding: 22px 22px 26px;
+      overflow: hidden;
+    }
+
+    /* ----- Header ----- */
+    .brandbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--ink-faint);
+    }
+    .mark {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mark .eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+    }
+    .mark .wordmark {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 25px;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .ledger {
+      text-align: right;
+    }
+    .ledger .lbl {
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .ledger .bal {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 26px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: var(--gold);
+    }
+    .addfunds {
+      margin-top: 2px;
+      display: inline-block;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--ui);
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      color: var(--ink-dim);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.18s;
+    }
+    .addfunds:hover { color: var(--gold-soft); }
+
+    /* ----- Reel window ----- */
+    .window {
+      position: relative;
+      margin-top: 20px;
+      border-radius: 16px;
+      background: var(--recess);
+      padding: 14px 14px 14px 38px;
+      box-shadow:
+        inset 0 2px 14px rgba(0, 0, 0, 0.9),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+    /* payline pips down the left edge */
+    .paylines {
+      position: absolute;
+      left: 12px;
+      top: 14px;
+      bottom: 14px;
+      width: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pip {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-dim);
+      position: relative;
+      transition: color 0.22s;
+    }
+    .pip::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      transition: background 0.22s, box-shadow 0.22s;
+    }
+    .pip.active { color: var(--gold-soft); }
+    .pip.active::before { background: var(--gold); box-shadow: 0 0 8px var(--gold-soft); }
+    .pip.win { color: var(--gold); }
+    .pip.win::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .row-band {
+      display: contents;
+    }
+    .cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 11px;
+      background: linear-gradient(160deg, #f7f2e9, #e6ddcc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow:
+        inset 0 -3px 6px rgba(120, 100, 70, 0.25),
+        inset 0 2px 3px rgba(255, 255, 255, 0.8);
+      transition: opacity 0.25s, transform 0.2s;
+    }
+    .cell.dim { opacity: 0.32; }
+    .cell svg { width: 54%; height: 54%; display: block; }
+    .cell.sym-A { color: var(--tile-A); }
+    .cell.sym-B { color: var(--tile-B); }
+    .cell.sym-C { color: var(--tile-C); }
+    .cell.sym-D { color: var(--tile-D); }
+
+    .cell.spinning svg { filter: blur(1.5px); opacity: 0.85; }
+    @keyframes settle {
+      0%   { transform: translateY(-9%) scale(1.06); }
+      60%  { transform: translateY(2%)  scale(0.99); }
+      100% { transform: translateY(0)   scale(1); }
+    }
+    .cell.settle { animation: settle 0.34s cubic-bezier(.2,.9,.3,1.2); }
+
+    @keyframes winpulse {
+      0%, 100% { box-shadow: inset 0 -3px 6px rgba(120,100,70,.25), inset 0 2px 3px rgba(255,255,255,.8), 0 0 0 rgba(245,200,105,0); }
+      50%      { box-shadow: inset 0 -3px 6px rgba(120,100,70,.25), inset 0 2px 3px rgba(255,255,255,.8), 0 0 18px 2px rgba(245,200,105,.85); }
+    }
+    .cell.win { animation: winpulse 1s ease-in-out 2; }
+
+    /* ----- Paytable ----- */
+    .paytable {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .pt-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 6px 4px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--ink-faint);
+    }
+    .pt-item svg { width: 15px; height: 15px; }
+    .pt-item.sym-A { color: var(--tile-A); }
+    .pt-item.sym-B { color: var(--tile-B); }
+    .pt-item.sym-C { color: var(--tile-C); }
+    .pt-item.sym-D { color: var(--tile-D); }
+    .pt-item .mult {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ----- Controls ----- */
+    .controls {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ctl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .ctl-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .segments {
+      display: flex;
+      gap: 6px;
+    }
+    .seg {
+      width: 40px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--edge);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--ink-dim);
+      font-family: var(--ui);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.16s;
+    }
+    .seg:hover { border-color: var(--gold-deep); color: var(--ink); }
+    .seg.on {
+      background: linear-gradient(160deg, var(--gold), var(--gold-deep));
+      border-color: var(--gold);
+      color: #2a1d05;
+      box-shadow: 0 4px 14px -6px var(--gold-soft);
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-btn {
+      width: 34px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--edge);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all 0.16s;
+    }
+    .step-btn:hover { border-color: var(--gold-deep); }
+    .bet-input {
+      width: 64px;
+      height: 36px;
+      text-align: center;
+      border-radius: 9px;
+      border: 1px solid var(--edge);
+      background: var(--recess);
+      color: var(--ink);
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+    }
+    .bet-input:focus { outline: 2px solid var(--gold-deep); outline-offset: 1px; }
+    /* hide native number spinners */
+    .bet-input::-webkit-outer-spin-button,
+    .bet-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .bet-input { -moz-appearance: textfield; }
+
+    .total {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding-top: 4px;
+    }
+    .total .t-lbl { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); }
+    .total .t-val { font-family: var(--display); font-weight: 600; font-size: 20px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+    /* ----- Spin button ----- */
+    .spin {
+      margin-top: 4px;
+      width: 100%;
+      height: 58px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 19px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #2a1d05;
+      background: linear-gradient(175deg, #ffd884, var(--gold) 45%, var(--gold-deep));
+      box-shadow:
+        0 10px 26px -10px var(--gold-soft),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        inset 0 -3px 6px rgba(120, 80, 0, 0.25);
+      transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+    }
+    .spin:hover { filter: brightness(1.04); }
+    .spin:active { transform: translateY(2px); box-shadow: 0 4px 12px -8px var(--gold-soft), inset 0 1px 1px rgba(255,255,255,.6); }
+    .spin:disabled { cursor: default; filter: saturate(0.5) brightness(0.8); box-shadow: none; }
+
+    /* ----- Result line ----- */
+    .result {
+      margin-top: 16px;
+      min-height: 40px;
+      text-align: center;
+    }
+    .result .r-main {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 1.2;
+      color: var(--ink-dim);
+      transition: color 0.2s;
+    }
+    .result .r-main.win { color: var(--jade); }
+    .result .r-main.loss { color: var(--rose); }
+    .result .r-sub {
+      margin-top: 2px;
+      font-size: 11.5px;
+      letter-spacing: 0.04em;
+      color: var(--ink-dim);
+      min-height: 14px;
+    }
+
+    /* ----- Deposit overlay ----- */
+    .overlay {
+      position: absolute;
+      inset: 1.5px;
+      border-radius: 25px;
+      background: linear-gradient(165deg, rgba(38,28,51,.97), rgba(20,15,34,.98));
+      backdrop-filter: blur(4px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 30px;
+      z-index: 5;
+    }
+    .overlay.show { display: flex; }
+    .overlay .o-mark { font-family: var(--display); font-weight: 600; font-size: 30px; letter-spacing: .02em; }
+    .overlay .o-mark .accent { color: var(--gold); }
+    .overlay .o-sub { font-size: 12px; letter-spacing: .06em; color: var(--ink-dim); text-align: center; max-width: 260px; line-height: 1.5; }
+    .deposit-field {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      background: var(--recess);
+      overflow: hidden;
+      width: 100%;
+      max-width: 240px;
+    }
+    .deposit-field .cur { padding: 0 4px 0 16px; font-family: var(--display); font-size: 22px; color: var(--gold); }
+    .deposit-input {
+      flex: 1;
+      height: 52px;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+      width: 100%;
+    }
+    .deposit-input:focus { outline: none; }
+    .deposit-input::-webkit-outer-spin-button,
+    .deposit-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .deposit-btn {
+      width: 100%;
+      max-width: 240px;
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #2a1d05;
+      background: linear-gradient(175deg, #ffd884, var(--gold) 50%, var(--gold-deep));
+      box-shadow: 0 8px 22px -10px var(--gold-soft), inset 0 1px 1px rgba(255,255,255,.7);
+      transition: filter .15s, transform .1s;
+    }
+    .deposit-btn:hover { filter: brightness(1.04); }
+    .deposit-btn:active { transform: translateY(2px); }
+    .o-err { font-size: 11.5px; color: var(--rose); min-height: 14px; letter-spacing: .03em; }
+    .o-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; letter-spacing: .08em; color: var(--ink-dim);
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+    .o-close:hover { color: var(--ink); }
+    .o-close.hidden { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cell.spinning svg { filter: none; }
+      .cell.settle { animation: none; }
+      .cell.win { animation: none; box-shadow: inset 0 -3px 6px rgba(120,100,70,.25), inset 0 2px 3px rgba(255,255,255,.8), 0 0 16px 2px rgba(245,200,105,.8); }
+    }
+
+    @media (max-width: 420px) {
+      .cabinet-inner { padding: 18px 16px 22px; }
+      .window { padding-left: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cabinet">
+    <div class="cabinet-inner">
+
+      <header class="brandbar">
+        <div class="mark">
+          <span class="eyebrow">Est. 2026</span>
+          <span class="wordmark">Golden Hour</span>
+        </div>
+        <div class="ledger">
+          <div class="lbl">Balance</div>
+          <div class="bal" id="balance">&euro;0</div>
+          <button class="addfunds" id="addFunds">Add funds</button>
+        </div>
+      </header>
+
+      <section class="window">
+        <div class="paylines" id="paylines"></div>
+        <div class="grid" id="grid"></div>
+      </section>
+
+      <div class="paytable" id="paytable"></div>
+
+      <section class="controls">
+        <div class="ctl-row">
+          <span class="ctl-label">Paylines</span>
+          <div class="segments" id="segments"></div>
+        </div>
+        <div class="ctl-row">
+          <span class="ctl-label">Bet / line</span>
+          <div class="stepper">
+            <button class="step-btn" id="betDown" aria-label="Lower bet">&minus;</button>
+            <input class="bet-input" id="betInput" type="number" inputmode="numeric" value="5" />
+            <button class="step-btn" id="betUp" aria-label="Raise bet">+</button>
+          </div>
+        </div>
+        <div class="total">
+          <span class="t-lbl">Total stake</span>
+          <span class="t-val" id="totalStake">&euro;5</span>
+        </div>
+        <button class="spin" id="spinBtn">Spin</button>
+      </section>
+
+      <div class="result">
+        <div class="r-main" id="resultMain">Place your bet and spin.</div>
+        <div class="r-sub" id="resultSub"></div>
+      </div>
+
+    </div>
+
+    <!-- Deposit overlay -->
+    <div class="overlay" id="overlay">
+      <div class="o-mark">Golden <span class="accent">Hour</span></div>
+      <div class="o-sub">Choose how much you'd like to bring to the table to start playing.</div>
+      <div class="deposit-field">
+        <span class="cur">&euro;</span>
+        <input class="deposit-input" id="depositInput" type="number" inputmode="numeric" placeholder="100" />
+      </div>
+      <button class="deposit-btn" id="depositBtn">Deposit</button>
+      <div class="o-err" id="depositErr"></div>
+      <button class="o-close hidden" id="overlayClose">Back to the table</button>
+    </div>
+  </div>
+
+  <script>
+    // ---- Symbol artwork (one clean SVG per symbol) ----
+    const SVGS = {
+      A: '<svg viewBox="0 0 100 100" fill="currentColor"><path d="M24 20h52v15L52 84H34l24-49H24z"/></svg>',
+      B: '<svg viewBox="0 0 100 100" fill="currentColor"><path d="M50 14c-3 0-5 2-5 5v3c-11 3-18 13-18 25 0 14-4 20-8 24-2 2-1 6 2 6h54c3 0 4-4 2-6-4-4-8-10-8-24 0-12-7-22-18-25v-3c0-3-2-5-5-5z"/><circle cx="50" cy="86" r="6"/></svg>',
+      C: '<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><circle cx="50" cy="50" r="30"/><path d="M50 22v56M22 50h56M30 30l40 40M70 30 30 70"/></svg>',
+      D: '<svg viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M40 60C42 36 56 26 74 26"/><path d="M62 64C64 42 60 30 74 26"/></g><circle cx="36" cy="68" r="15" fill="currentColor"/><circle cx="64" cy="72" r="15" fill="currentColor"/></svg>'
+    };
+
+    const els = {
+      balance: document.getElementById('balance'),
+      grid: document.getElementById('grid'),
+      paylines: document.getElementById('paylines'),
+      paytable: document.getElementById('paytable'),
+      segments: document.getElementById('segments'),
+      betInput: document.getElementById('betInput'),
+      betDown: document.getElementById('betDown'),
+      betUp: document.getElementById('betUp'),
+      totalStake: document.getElementById('totalStake'),
+      spinBtn: document.getElementById('spinBtn'),
+      resultMain: document.getElementById('resultMain'),
+      resultSub: document.getElementById('resultSub'),
+      addFunds: document.getElementById('addFunds'),
+      overlay: document.getElementById('overlay'),
+      depositInput: document.getElementById('depositInput'),
+      depositBtn: document.getElementById('depositBtn'),
+      depositErr: document.getElementById('depositErr'),
+      overlayClose: document.getElementById('overlayClose'),
+    };
+
+    const state = {
+      config: null,
+      balance: 0,
+      lines: 1,
+      bet: 5,
+      symbols: ['A', 'B', 'C', 'D'],
+      spinning: false,
+    };
+
+    const euro = (n) => '\u20ac' + n;
+
+    // ---- Build the static parts once config arrives ----
+    function buildBoard() {
+      const { rows, cols } = state.config;
+
+      // payline pips (one per row = one per line)
+      els.paylines.innerHTML = '';
+      for (let r = 0; r < rows; r++) {
+        const pip = document.createElement('div');
+        pip.className = 'pip';
+        pip.dataset.row = r;
+        pip.textContent = String(r + 1).padStart(2, '0');
+        els.paylines.appendChild(pip);
+      }
+
+      // grid cells, row by row (row r, column c -> cell)
+      els.grid.innerHTML = '';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          setCell(cell, state.symbols[Math.floor(Math.random() * state.symbols.length)]);
+          els.grid.appendChild(cell);
+        }
+      }
+
+      // payline selector (1..maxLines)
+      els.segments.innerHTML = '';
+      for (let i = 1; i <= state.config.maxLines; i++) {
+        const b = document.createElement('button');
+        b.className = 'seg' + (i === state.lines ? ' on' : '');
+        b.textContent = i;
+        b.dataset.lines = i;
+        b.addEventListener('click', () => setLines(i));
+        els.segments.appendChild(b);
+      }
+
+      // paytable, ordered high-to-low payout
+      const order = Object.entries(state.config.values).sort((a, b) => b[1] - a[1]);
+      els.paytable.innerHTML = '';
+      for (const [sym, val] of order) {
+        const item = document.createElement('div');
+        item.className = 'pt-item sym-' + sym;
+        item.innerHTML = SVGS[sym] + '<span class="mult">\u00d7' + val + '</span>';
+        els.paytable.appendChild(item);
+      }
+    }
+
+    function setCell(cell, sym) {
+      cell.classList.remove('sym-A', 'sym-B', 'sym-C', 'sym-D');
+      cell.classList.add('sym-' + sym);
+      cell.innerHTML = SVGS[sym];
+    }
+
+    function cellAt(r, c) {
+      return els.grid.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    }
+
+    // ---- Reflect line selection on the board ----
+    function setLines(n) {
+      state.lines = n;
+      document.querySelectorAll('.seg').forEach((s) => {
+        s.classList.toggle('on', Number(s.dataset.lines) === n);
+      });
+      const rows = state.config.rows;
+      for (let r = 0; r < rows; r++) {
+        const active = r < n;
+        document.querySelector(`.pip[data-row="${r}"]`).classList.toggle('active', active);
+        for (let c = 0; c < state.config.cols; c++) {
+          cellAt(r, c).classList.toggle('dim', !active);
+        }
+      }
+      updateTotal();
+    }
+
+    function clampBet(v) {
+      const { minBet, maxBet } = state.config;
+      if (isNaN(v)) v = minBet;
+      return Math.max(minBet, Math.min(maxBet, Math.round(v)));
+    }
+
+    function setBet(v) {
+      state.bet = clampBet(v);
+      els.betInput.value = state.bet;
+      updateTotal();
+    }
+
+    function updateTotal() {
+      els.totalStake.textContent = euro(state.bet * state.lines);
+    }
+
+    function setBalance(n) {
+      state.balance = n;
+      els.balance.textContent = euro(n);
+    }
+
+    // ---- Networking ----
+    async function api(path, body) {
+      const opts = body
+        ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        : {};
+      const res = await fetch(path, opts);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      return data;
+    }
+
+    // ---- Spin animation ----
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    function startReelCycling() {
+      const intervals = [];
+      for (let c = 0; c < state.config.cols; c++) {
+        for (let r = 0; r < state.config.rows; r++) {
+          cellAt(r, c).classList.add('spinning');
+        }
+        const id = setInterval(() => {
+          for (let r = 0; r < state.config.rows; r++) {
+            const sym = state.symbols[Math.floor(Math.random() * state.symbols.length)];
+            setCell(cellAt(r, c), sym);
+          }
+        }, 70);
+        intervals.push(id);
+      }
+      return intervals;
+    }
+
+    async function settleColumns(intervals, slots) {
+      // slots is the list of columns from the backend (your get_slot_machine_spin)
+      for (let c = 0; c < state.config.cols; c++) {
+        await wait(c === 0 ? 620 : 300);
+        clearInterval(intervals[c]);
+        for (let r = 0; r < state.config.rows; r++) {
+          const cell = cellAt(r, c);
+          setCell(cell, slots[c][r]);
+          cell.classList.remove('spinning');
+          cell.classList.add('settle');
+          setTimeout(() => cell.classList.remove('settle'), 360);
+        }
+      }
+    }
+
+    function clearWinHighlights() {
+      document.querySelectorAll('.cell.win').forEach((c) => c.classList.remove('win'));
+      document.querySelectorAll('.pip.win').forEach((p) => p.classList.remove('win'));
+    }
+
+    function highlightWins(winningLines) {
+      for (const line of winningLines) {
+        const r = line - 1;
+        const pip = document.querySelector(`.pip[data-row="${r}"]`);
+        if (pip) pip.classList.add('win');
+        for (let c = 0; c < state.config.cols; c++) cellAt(r, c).classList.add('win');
+      }
+    }
+
+    function joinLines(arr) {
+      if (arr.length === 1) return 'line ' + arr[0];
+      if (arr.length === 2) return 'lines ' + arr[0] + ' and ' + arr[1];
+      return 'lines ' + arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1];
+    }
+
+    function showResult(data) {
+      const { winnings, winningLines, net } = data;
+      const main = els.resultMain;
+      main.classList.remove('win', 'loss');
+      if (winnings > 0) {
+        main.textContent = 'You won ' + euro(winnings) + '!';
+        main.classList.add(net >= 0 ? 'win' : 'loss');
+        els.resultSub.textContent =
+          'Matched on ' + joinLines(winningLines) +
+          '  \u00b7  ' + (net >= 0 ? 'up ' + euro(net) : 'down ' + euro(-net)) + ' this round';
+      } else {
+        main.textContent = 'No win this time.';
+        els.resultSub.textContent = 'Down ' + euro(-net) + ' \u00b7 spin again';
+      }
+    }
+
+    function setControlsEnabled(on) {
+      els.spinBtn.disabled = !on;
+      els.betUp.disabled = !on;
+      els.betDown.disabled = !on;
+      els.betInput.disabled = !on;
+      document.querySelectorAll('.seg').forEach((s) => (s.disabled = !on));
+    }
+
+    async function doSpin() {
+      if (state.spinning) return;
+      if (state.balance <= 0) { openDeposit(); return; }
+      if (state.bet * state.lines > state.balance) {
+        els.resultMain.classList.remove('win');
+        els.resultMain.classList.add('loss');
+        els.resultMain.textContent = "That's more than your balance.";
+        els.resultSub.textContent = 'Lower your bet or add funds.';
+        return;
+      }
+
+      state.spinning = true;
+      setControlsEnabled(false);
+      clearWinHighlights();
+      els.resultMain.classList.remove('win', 'loss');
+      els.resultMain.textContent = 'Spinning\u2026';
+      els.resultSub.textContent = '';
+      els.spinBtn.textContent = '\u2026';
+
+      const intervals = startReelCycling();
+
+      try {
+        const data = await api('/spin', { lines: state.lines, bet: state.bet });
+        await settleColumns(intervals, data.slots);
+        setBalance(data.balance);
+        highlightWins(data.winningLines);
+        showResult(data);
+        if (data.balance <= 0) {
+          setTimeout(() => {
+            openDeposit("You're out of funds. Top up to keep playing.");
+          }, 900);
+        }
+      } catch (err) {
+        intervals.forEach(clearInterval);
+        document.querySelectorAll('.cell.spinning').forEach((c) => c.classList.remove('spinning'));
+        els.resultMain.classList.add('loss');
+        els.resultMain.textContent = err.message;
+        els.resultSub.textContent = '';
+      } finally {
+        state.spinning = false;
+        setControlsEnabled(true);
+        els.spinBtn.textContent = 'Spin';
+      }
+    }
+
+    // ---- Deposit overlay ----
+    function openDeposit(message) {
+      els.depositErr.textContent = '';
+      els.depositInput.value = '';
+      els.overlay.querySelector('.o-sub').textContent =
+        message || "Choose how much you'd like to bring to the table to start playing.";
+      els.overlayClose.classList.toggle('hidden', state.balance <= 0);
+      els.overlay.classList.add('show');
+      setTimeout(() => els.depositInput.focus(), 50);
+    }
+    function closeDeposit() {
+      if (state.balance > 0) els.overlay.classList.remove('show');
+    }
+
+    async function doDeposit() {
+      const amount = parseInt(els.depositInput.value, 10);
+      if (isNaN(amount) || amount <= 0) {
+        els.depositErr.textContent = 'Enter a positive whole number.';
+        return;
+      }
+      try {
+        const data = await api('/deposit', { amount });
+        setBalance(data.balance);
+        els.overlay.classList.remove('show');
+        els.resultMain.classList.remove('win', 'loss');
+        els.resultMain.textContent = 'Place your bet and spin.';
+        els.resultSub.textContent = '';
+      } catch (err) {
+        els.depositErr.textContent = err.message;
+      }
+    }
+
+    // ---- Wire up events ----
+    els.betUp.addEventListener('click', () => setBet(state.bet + 1));
+    els.betDown.addEventListener('click', () => setBet(state.bet - 1));
+    els.betInput.addEventListener('change', () => setBet(parseInt(els.betInput.value, 10)));
+    els.spinBtn.addEventListener('click', doSpin);
+    els.addFunds.addEventListener('click', () => openDeposit());
+    els.depositBtn.addEventListener('click', doDeposit);
+    els.overlayClose.addEventListener('click', closeDeposit);
+    els.depositInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doDeposit(); });
+
+    document.addEventListener('keydown', (e) => {
+      const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+      if (e.code === 'Space' && !typing && !els.overlay.classList.contains('show')) {
+        e.preventDefault();
+        doSpin();
+      }
+    });
+
+    // ---- Boot ----
+    async function boot() {
+      try {
+        const data = await api('/state');
+        state.config = data.config;
+        state.bet = state.config.minBet > 5 ? state.config.minBet : 5;
+        state.symbols = Object.keys(state.config.values);
+        buildBoard();
+        setBet(state.bet);
+        setLines(state.lines);
+        setBalance(data.balance);
+        if (data.balance <= 0) openDeposit();
+      } catch (err) {
+        els.resultMain.textContent = 'Could not reach the server.';
+        els.resultSub.textContent = 'Make sure app.py is running.';
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
